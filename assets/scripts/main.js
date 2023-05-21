@@ -21,6 +21,7 @@ async function init() {
   let recipes;
   try {
     recipes = await getRecipes();
+    console.log(recipes);
   } catch (err) {
     console.error(err);
   }
@@ -33,6 +34,15 @@ async function init() {
  * of installing it and getting it running
  */
 function initializeServiceWorker() {
+    if ('serviceWorker' in navigator) {  
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js', {scope: './'}).then((registration) => {
+                console.log('Service worker registration succeeded:', registration);
+            }, (error) => {
+                console.error(`Service worker registration failed: ${error}`);
+            });
+        })
+    }
   // EXPLORE - START (All explore numbers start with B)
   /*******************/
   // ServiceWorkers have many uses, the most common of which is to manage
@@ -72,6 +82,19 @@ async function getRecipes() {
   // The rest of this method will be concerned with requesting the recipes
   // from the network
   // A2. TODO - Create an empty array to hold the recipes that you will fetch
+  return new Promise((resolve, reject) => {
+    const promiseList = []
+    RECIPE_URLS.forEach((url) => {
+        promiseList.push(
+            new Promise((res, rej) => {
+                fetch(url).then(response => response.json()).then(data => res(data)).catch(error => rej(error))
+            })
+        );
+    });
+    Promise.all(promiseList).then((data) => {
+        resolve(data);
+    }).catch((error) => {reject(error);});
+  });
   // A3. TODO - Return a new Promise. If you are unfamiliar with promises, MDN
   //            has a great article on them. A promise takes one parameter - A
   //            function (we call these callback functions). That function will
@@ -119,11 +142,11 @@ function saveRecipesToStorage(recipes) {
  * @param {Array<Object>} recipes An array of recipes
  */
 function addRecipesToDocument(recipes) {
-  if (!recipes) return;
-  let main = document.querySelector('main');
-  recipes.forEach((recipe) => {
-    let recipeCard = document.createElement('recipe-card');
-    recipeCard.data = recipe;
-    main.append(recipeCard);
-  });
+    if (!recipes) return;
+    const main = document.querySelector('main');
+    recipes.forEach((recipe) => {
+        let recipeCard = document.createElement('recipe-card');
+        recipeCard.data = recipe;
+        main.append(recipeCard);
+    });
 }
