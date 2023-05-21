@@ -21,7 +21,6 @@ async function init() {
   let recipes;
   try {
     recipes = await getRecipes();
-    console.log(recipes);
   } catch (err) {
     console.error(err);
   }
@@ -75,6 +74,9 @@ function initializeServiceWorker() {
  * @returns {Array<Object>} An array of recipes found in localStorage
  */
 async function getRecipes() {
+    if (localStorage.getItem('recipes') !== null) {
+        return JSON.parse(localStorage.getItem('recipes'));
+    }
   // EXPOSE - START (All expose numbers start with A)
   // A1. TODO - Check local storage to see if there are any recipes.
   //            If there are recipes, return them.
@@ -93,6 +95,7 @@ async function getRecipes() {
     });
     Promise.all(promiseList).then((data) => {
         resolve(data);
+        saveRecipesToStorage(data);
     }).catch((error) => {reject(error);});
   });
   // A3. TODO - Return a new Promise. If you are unfamiliar with promises, MDN
