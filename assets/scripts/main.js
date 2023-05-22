@@ -84,19 +84,34 @@ async function getRecipes() {
   // The rest of this method will be concerned with requesting the recipes
   // from the network
   // A2. TODO - Create an empty array to hold the recipes that you will fetch
+  const recipeList = [];
   return new Promise((resolve, reject) => {
-    const promiseList = []
-    RECIPE_URLS.forEach((url) => {
-        promiseList.push(
-            new Promise((res, rej) => {
-                fetch(url).then(response => response.json()).then(data => res(data)).catch(error => rej(error))
-            })
-        );
+    // const promiseList = []
+    // RECIPE_URLS.forEach((url) => {
+    //     promiseList.push(
+    //         new Promise((res, rej) => {
+    //             fetch(url).then(response => response.json()).then(data => res(data)).catch(error => rej(error))
+    //         })
+    //     );
+    // });
+    // Promise.all(promiseList).then((data) => {
+    //     resolve(data);
+    //     saveRecipesToStorage(data);
+    // }).catch((error) => {reject(error);});
+    RECIPE_URLS.forEach(async (url) => {
+        try {
+            const response = await fetch(url);
+            const recipe = await response.json();
+            recipeList.push(recipe);
+            if (recipeList.length === RECIPE_URLS.length) {
+                resolve(recipeList);
+                saveRecipesToStorage(recipeList);
+            }
+        } catch (err) {
+            console.log(err);
+            reject(err);
+        }
     });
-    Promise.all(promiseList).then((data) => {
-        resolve(data);
-        saveRecipesToStorage(data);
-    }).catch((error) => {reject(error);});
   });
   // A3. TODO - Return a new Promise. If you are unfamiliar with promises, MDN
   //            has a great article on them. A promise takes one parameter - A
